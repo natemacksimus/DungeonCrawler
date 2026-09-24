@@ -11,7 +11,11 @@ namespace DungeonCrawler.Game
     /// </summary>
     public sealed class DungeonView : MonoBehaviour
     {
-        const int PixelsPerTile = 8;
+        const int DefaultPixelsPerTile = 8;
+
+        /// <summary>Ceiling on the auto-matched resolution below, so a huge override texture can't blow up the baked map.</summary>
+        const int MaxPixelsPerTile = 64;
+
         const int OrderMap = 0;
         const int OrderStairs = 6;
         const int OrderItems = 8;
@@ -20,7 +24,15 @@ namespace DungeonCrawler.Game
         const int OrderPlayer = 20;
 
         GameState _game;
+        VisualOverrides _overrides;
         int _builtFloorVersion = -1;
+
+        /// <summary>
+        /// Pixels baked per tile in the map texture. Matches the largest tile override texture (so
+        /// custom art renders 1:1 instead of being resized), or <see cref="DefaultPixelsPerTile"/> when
+        /// no tile art is wired in.
+        /// </summary>
+        int _pixelsPerTile = DefaultPixelsPerTile;
 
         SpriteRenderer _map;
         SpriteRenderer _fog;
@@ -34,9 +46,13 @@ namespace DungeonCrawler.Game
         readonly List<SpriteRenderer> _enemyPool = new List<SpriteRenderer>();
         readonly List<SpriteRenderer> _markerPool = new List<SpriteRenderer>();
 
-        public void Initialize(GameState game)
+        readonly HashSet<Texture2D> _warnedUnreadable = new HashSet<Texture2D>();
+
+        public void Initialize(GameState game, VisualOverrides overrides = null)
         {
             _game = game;
+            _overrides = overrides;
+            _pixelsPerTile = ResolvePixelsPerTile(overrides);
 
             _map = CreateRenderer("Map", OrderMap, transform);
             _fog = CreateRenderer("Fog", OrderFog, transform);
@@ -45,8 +61,7 @@ namespace DungeonCrawler.Game
             _entityRoot.SetParent(transform, false);
 
             _player = CreateRenderer("Player", OrderPlayer, _entityRoot);
-            _player.sprite = SpriteFactory.Shape(ShapeKind.Disc);
-            _player.color = Palette.Player;
+            ApplyVisual(_player, _overrides != null ? _overrides.PlayerSprite : null, ShapeKind.Disc, Palette.Player);
 
             _builtFloorVersion = -1;
         }
@@ -71,8 +86,8 @@ namespace DungeonCrawler.Game
         void BuildFloor()
         {
             DungeonData dungeon = _game.Dungeon;
-            int w = dungeon.Width * PixelsPerTile;
-            int h = dungeon.Height * PixelsPerTile;
+            int w = dungeon.Width * _pixelsPerTile;
+            int h = dungeon.Height * _pixelsPerTile;
             var pixels = new Color32[w * h];
 
             for (int ty = 0; ty < dungeon.Height; ty++)
@@ -84,7 +99,7 @@ namespace DungeonCrawler.Game
                 Destroy(_map.sprite.texture);
                 Destroy(_map.sprite);
             }
-            _map.sprite = SpriteFactory.FromPixels(pixels, w, h, PixelsPerTile, "dc_map");
+            _map.sprite = SpriteFactory.FromPixels(pixels, w, h, _pixelsPerTile, "dc_map");
             _map.transform.localPosition = Vector3.zero;
 
             BuildFogTexture(dungeon);
@@ -94,6 +109,9 @@ namespace DungeonCrawler.Game
         void PaintTile(DungeonData dungeon, Color32[] pixels, int stride, int tx, int ty)
         {
             TileType tile = dungeon[tx, ty];
+            Texture2D custom = _overrides != null ? _overrides.TextureForTile(tile) : null;
+            if (custom != null && !EnsureReadable(custom)) custom = null;
+
             Color32 baseColor;
             switch (tile)
             {
@@ -104,52 +122,109 @@ namespace DungeonCrawler.Game
 
             bool wall = tile == TileType.Wall;
             bool capped = wall && ty + 1 < dungeon.Height && dungeon[tx, ty + 1] != TileType.Wall;
-            int originX = tx * PixelsPerTile;
-            int originY = ty * PixelsPerTile;
+            int originX = tx * _pixelsPerTile;
+            int originY = ty * _pixelsPerTile;
+            int capThickness = Mathf.Max(1, _pixelsPerTile / 4);
 
-            for (int py = 0; py < PixelsPerTile; py++)
+            for (int py = 0; py < _pixelsPerTile; py++)
             {
-                for (int px = 0; px < PixelsPerTile; px++)
+                for (int px = 0; px < _pixelsPerTile; px++)
                 {
-                    Color32 c = baseColor;
+                    Color32 c;
 
-                    if (wall)
+                    if (custom != null)
                     {
-                        // A lit cap on walls that face open space reads as depth.
-                        if (capped && py >= PixelsPerTile - 2) c = Palette.WallTop;
-                        else if (py == 0) c = Multiply(baseColor, 0.72f);
+                        c = SampleTile(custom, px, py);
                     }
                     else
                     {
-                        // Deterministic speckle so floors have texture without looking noisy.
-                        int hash = (tx * 73856093) ^ (ty * 19349663) ^ (px * 83492791) ^ (py * 1500450271);
-                        if ((hash & 31) == 0) c = Palette.FloorSpeck;
+                        c = baseColor;
 
-                        bool edge = px == 0 || py == 0;
-                        if (edge && (dungeon.IsWalkable(tx - 1, ty) || dungeon.IsWalkable(tx, ty - 1)))
-                            c = Multiply(c, 0.88f);
+                        if (wall)
+                        {
+                            // A lit cap on walls that face open space reads as depth.
+                            if (capped && py >= _pixelsPerTile - capThickness) c = Palette.WallTop;
+                            else if (py == 0) c = Multiply(baseColor, 0.72f);
+                        }
+                        else
+                        {
+                            // Deterministic speckle so floors have texture without looking noisy.
+                            int hash = (tx * 73856093) ^ (ty * 19349663) ^ (px * 83492791) ^ (py * 1500450271);
+                            if ((hash & 31) == 0) c = Palette.FloorSpeck;
+
+                            bool edge = px == 0 || py == 0;
+                            if (edge && (dungeon.IsWalkable(tx - 1, ty) || dungeon.IsWalkable(tx, ty - 1)))
+                                c = Multiply(c, 0.88f);
+                        }
                     }
 
                     pixels[(originY + py) * stride + originX + px] = c;
                 }
             }
 
-            if (tile == TileType.Door) PaintDoor(dungeon, pixels, stride, tx, ty);
+            if (tile == TileType.Door && custom == null) PaintDoor(dungeon, pixels, stride, tx, ty);
+        }
+
+        /// <summary>
+        /// Guards against <see cref="Texture2D.GetPixelBilinear"/> throwing on a texture that has not
+        /// been imported with "Read/Write Enabled". Falls back to the default tile art instead, once,
+        /// with a warning explaining the fix.
+        /// </summary>
+        bool EnsureReadable(Texture2D texture)
+        {
+            if (texture.isReadable) return true;
+            if (_warnedUnreadable.Add(texture))
+            {
+                Debug.LogWarning("[DungeonCrawler] '" + texture.name + "' is not Read/Write Enabled, so it " +
+                                  "can't be sampled for tile art. Falling back to the default look. Fix: select " +
+                                  "the texture, then in Import Settings enable Read/Write, and Apply.");
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Nearest-neighbour lookup rather than <see cref="Texture2D.GetPixelBilinear"/>, so pixel art
+        /// stays crisp: a texture at exactly <see cref="_pixelsPerTile"/> resolution reproduces every
+        /// source pixel 1:1, and a smaller one block-scales up instead of blurring.
+        /// </summary>
+        Color32 SampleTile(Texture2D source, int px, int py)
+        {
+            int sx = Mathf.Min(source.width - 1, px * source.width / _pixelsPerTile);
+            int sy = Mathf.Min(source.height - 1, py * source.height / _pixelsPerTile);
+            return source.GetPixel(sx, sy);
+        }
+
+        static int ResolvePixelsPerTile(VisualOverrides overrides)
+        {
+            if (overrides == null) return DefaultPixelsPerTile;
+
+            int size = DefaultPixelsPerTile;
+            size = Mathf.Max(size, LargestDimension(overrides.WallTexture));
+            size = Mathf.Max(size, LargestDimension(overrides.FloorTexture));
+            size = Mathf.Max(size, LargestDimension(overrides.DoorTexture));
+            return Mathf.Min(size, MaxPixelsPerTile);
+        }
+
+        static int LargestDimension(Texture2D texture)
+        {
+            return texture == null ? 0 : Mathf.Max(texture.width, texture.height);
         }
 
         void PaintDoor(DungeonData dungeon, Color32[] pixels, int stride, int tx, int ty)
         {
             bool vertical = dungeon.BlocksSight(tx - 1, ty) && dungeon.BlocksSight(tx + 1, ty);
-            int originX = tx * PixelsPerTile;
-            int originY = ty * PixelsPerTile;
+            int originX = tx * _pixelsPerTile;
+            int originY = ty * _pixelsPerTile;
+            int barLow = _pixelsPerTile / 2 - 1;
+            int barHigh = _pixelsPerTile / 2;
 
-            for (int py = 0; py < PixelsPerTile; py++)
+            for (int py = 0; py < _pixelsPerTile; py++)
             {
-                for (int px = 0; px < PixelsPerTile; px++)
+                for (int px = 0; px < _pixelsPerTile; px++)
                 {
                     bool onBar = vertical
-                        ? py >= 3 && py <= 4
-                        : px >= 3 && px <= 4;
+                        ? py >= barLow && py <= barHigh
+                        : px >= barLow && px <= barHigh;
                     if (!onBar) continue;
                     pixels[(originY + py) * stride + originX + px] = Palette.DoorWood;
                 }
@@ -177,14 +252,12 @@ namespace DungeonCrawler.Game
             for (int i = 0; i < _markerPool.Count; i++) _markerPool[i].gameObject.SetActive(false);
 
             SpriteRenderer down = Marker(0);
-            down.sprite = SpriteFactory.Shape(ShapeKind.Stairs);
-            down.color = Palette.StairsDown;
+            ApplyVisual(down, _overrides != null ? _overrides.StairsDownSprite : null, ShapeKind.Stairs, Palette.StairsDown);
             down.transform.localPosition = TileCenter(dungeon.StairsDown);
             down.gameObject.SetActive(true);
 
             SpriteRenderer up = Marker(1);
-            up.sprite = SpriteFactory.Shape(ShapeKind.Stairs);
-            up.color = Palette.StairsUp;
+            ApplyVisual(up, _overrides != null ? _overrides.StairsUpSprite : null, ShapeKind.Stairs, Palette.StairsUp);
             up.transform.localPosition = TileCenter(dungeon.StairsUp);
             up.gameObject.SetActive(true);
         }
@@ -228,8 +301,8 @@ namespace DungeonCrawler.Game
                 if (!_game.Explored[ground.Position.X, ground.Position.Y]) continue;
 
                 SpriteRenderer renderer = Pooled(_itemPool, itemIndex++, "Item", OrderItems);
-                renderer.sprite = SpriteFactory.Shape(ShapeForItem(ground.Item.Def.Kind));
-                renderer.color = Palette.ForItem(ground.Item.Def.Kind);
+                Sprite customItem = _overrides != null ? _overrides.SpriteForItem(ground.Item.Def.Kind) : null;
+                ApplyVisual(renderer, customItem, ShapeForItem(ground.Item.Def.Kind), Palette.ForItem(ground.Item.Def.Kind));
                 renderer.transform.localPosition = TileCenter(ground.Position);
                 renderer.gameObject.SetActive(true);
             }
@@ -242,12 +315,14 @@ namespace DungeonCrawler.Game
                 if (!_game.IsVisible(enemy.Position)) continue;
 
                 SpriteRenderer renderer = Pooled(_enemyPool, enemyIndex++, "Enemy", OrderEnemies);
-                renderer.sprite = SpriteFactory.Shape(ShapeForEnemy(enemy.Archetype));
+                Sprite customEnemy = _overrides != null ? _overrides.SpriteForEnemy(enemy.Archetype) : null;
+                renderer.sprite = customEnemy != null ? customEnemy : SpriteFactory.Shape(ShapeForEnemy(enemy.Archetype));
 
                 // Wounded monsters darken, so you can read a fight without a health bar per monster.
+                // Custom art keeps this: it dims toward grey rather than being recoloured.
+                Color32 baseColor = customEnemy != null ? (Color32)Color.white : Palette.ForEnemy(enemy.Archetype);
                 float health = enemy.MaxHp <= 0 ? 1f : enemy.Hp / (float)enemy.MaxHp;
-                renderer.color = Color.Lerp(Multiply(Palette.ForEnemy(enemy.Archetype), 0.45f),
-                                            Palette.ForEnemy(enemy.Archetype), 0.35f + 0.65f * health);
+                renderer.color = Color.Lerp(Multiply(baseColor, 0.45f), baseColor, 0.35f + 0.65f * health);
                 renderer.transform.localPosition = TileCenter(enemy.Position);
                 renderer.gameObject.SetActive(true);
             }
@@ -305,6 +380,13 @@ namespace DungeonCrawler.Game
             {
                 if (pool[i].gameObject.activeSelf) pool[i].gameObject.SetActive(false);
             }
+        }
+
+        /// <summary>Uses a custom sprite at full colour when one is wired in, else the procedural default.</summary>
+        static void ApplyVisual(SpriteRenderer renderer, Sprite custom, ShapeKind fallbackShape, Color fallbackColor)
+        {
+            renderer.sprite = custom != null ? custom : SpriteFactory.Shape(fallbackShape);
+            renderer.color = custom != null ? Color.white : fallbackColor;
         }
 
         static SpriteRenderer CreateRenderer(string name, int sortingOrder, Transform parent)

@@ -4,8 +4,9 @@ using DungeonCrawler.Core;
 namespace DungeonCrawler.Game
 {
     /// <summary>
-    /// Orthographic follow camera. It eases toward the player and stays inside the floor bounds, so
-    /// the view never shows the void past the map edge.
+    /// Orthographic follow camera. It eases toward the player and always keeps them centred, even
+    /// right up against the map edge, so a HUD panel never covers them. The margin beyond the map
+    /// renders as the same solid background colour as unexplored fog, so there is no visible seam.
     /// </summary>
     public sealed class CameraRig : MonoBehaviour
     {
@@ -50,21 +51,7 @@ namespace DungeonCrawler.Game
         Vector3 DesiredPosition()
         {
             Vector3 focus = DungeonView.TileCenter(_game.Player.Position);
-
-            float halfHeight = _camera.orthographicSize;
-            float halfWidth = halfHeight * _camera.aspect;
-            DungeonData dungeon = _game.Dungeon;
-
-            float x = ClampAxis(focus.x, halfWidth, dungeon.Width);
-            float y = ClampAxis(focus.y, halfHeight, dungeon.Height);
-            return new Vector3(x, y, -10f);
-        }
-
-        static float ClampAxis(float value, float halfExtent, float mapExtent)
-        {
-            // Centre the map on any axis it cannot fill.
-            if (mapExtent <= halfExtent * 2f) return mapExtent * 0.5f;
-            return Mathf.Clamp(value, halfExtent, mapExtent - halfExtent);
+            return new Vector3(focus.x, focus.y, -10f);
         }
     }
 }

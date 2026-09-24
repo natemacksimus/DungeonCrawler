@@ -305,6 +305,26 @@ namespace DungeonCrawler.Core
             return true;
         }
 
+        /// <summary>Drops the item in a pack slot onto the floor, provided the tile is clear.</summary>
+        public bool PlayerDropItem(int slot)
+        {
+            if (Status != GameStatus.Playing) return false;
+            if (slot < 0 || slot >= Player.Pack.Count) return false;
+
+            if (GroundItemAt(Player.Position) != null)
+            {
+                Log.Add("There is no room to drop anything here.");
+                return false;
+            }
+
+            Item item = Player.Pack.RemoveAt(slot);
+            Ground.Add(new GroundItem(item, Player.Position));
+            Log.Add("You drop the " + item.Def.Name + ".");
+
+            EndPlayerTurn();
+            return true;
+        }
+
         /// <summary>Takes the stairs down, or wins the run when this was the last floor.</summary>
         public bool PlayerDescend()
         {

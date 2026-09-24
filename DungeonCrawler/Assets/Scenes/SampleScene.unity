@@ -375,6 +375,7 @@ MonoBehaviour:
   selfPlayRuns: 5
   repeatDelay: 0.3
   repeatInterval: 0.07
+  visualOverrides: {fileID: 11400000, guid: 90d2c9a078d1e764a8eb7b1413116229, type: 2}
 --- !u!4 &1255904610
 Transform:
   m_ObjectHideFlags: 0

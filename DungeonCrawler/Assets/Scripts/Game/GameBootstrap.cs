@@ -30,6 +30,10 @@ namespace DungeonCrawler.Game
         [Tooltip("Seconds between repeats while a movement key is held.")]
         [SerializeField] float repeatInterval = 0.07f;
 
+        [Header("Visuals")]
+        [Tooltip("Optional artwork replacing the built-in procedural shapes. Leave empty to keep defaults.")]
+        [SerializeField] VisualOverrides visualOverrides;
+
         GameState _game;
         DungeonView _view;
         GameHud _hud;
@@ -59,7 +63,7 @@ namespace DungeonCrawler.Game
             _rig = camera.gameObject.GetComponent<CameraRig>();
             if (_rig == null) _rig = camera.gameObject.AddComponent<CameraRig>();
 
-            _view.Initialize(_game);
+            _view.Initialize(_game, visualOverrides);
             _hud.Initialize(_game);
             _rig.Initialize(camera, _game);
 
@@ -202,11 +206,13 @@ namespace DungeonCrawler.Game
                 return true;
             }
 
+            bool dropModifier = keyboard[Key.LeftShift].isPressed || keyboard[Key.RightShift].isPressed;
             for (int slot = 0; slot < 10; slot++)
             {
                 Key key = slot == 9 ? Key.Digit0 : (Key)((int)Key.Digit1 + slot);
                 if (!keyboard[key].wasPressedThisFrame) continue;
-                if (_game.PlayerUseItem(slot)) Redraw();
+                bool acted = dropModifier ? _game.PlayerDropItem(slot) : _game.PlayerUseItem(slot);
+                if (acted) Redraw();
                 else _hud.Refresh();
                 return true;
             }

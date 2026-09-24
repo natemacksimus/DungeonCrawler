@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9157df0d240ec248a3a66dcceca7689, type: 3}
+  m_Name: VisualOverrides
+  m_EditorClassIdentifier: DungeonCrawler.Game::DungeonCrawler.Game.VisualOverrides
+  WallTexture: {fileID: 2800000, guid: 99d67cc282f27bc449698cdf14dc176b, type: 3}
+  FloorTexture: {fileID: 2800000, guid: ca6695444799a7c4ca4c7e6a9f85d7e6, type: 3}
+  DoorTexture: {fileID: 2800000, guid: 0dc72c26c486b2c4d8770d84a1b4c979, type: 3}
+  PlayerSprite: {fileID: 9068554006985156445, guid: 98887461a13ca2842aa0c13266ab04de, type: 3}
+  GiantRatSprite: {fileID: 2918841900452246208, guid: 98887461a13ca2842aa0c13266ab04de, type: 3}
+  GoblinSprite: {fileID: -3521428786632420370, guid: 98887461a13ca2842aa0c13266ab04de, type: 3}
+  KoboldThiefSprite: {fileID: 8886013878211683144, guid: 98887461a13ca2842aa0c13266ab04de, type: 3}
+  SkeletonArcherSprite: {fileID: -1106701180, guid: 98887461a13ca2842aa0c13266ab04de, type: 3}
+  OrcBruteSprite: {fileID: -8281115851407310604, guid: 98887461a13ca2842aa0c13266ab04de, type: 3}
+  PotionSprite: {fileID: -1169892540, guid: 98887461a13ca2842aa0c13266ab04de, type: 3}
+  ScrollSprite: {fileID: 1082061053, guid: 98887461a13ca2842aa0c13266ab04de, type: 3}
+  WeaponSprite: {fileID: -2033401585, guid: 98887461a13ca2842aa0c13266ab04de, type: 3}
+  ArmorSprite: {fileID: 499280153, guid: 98887461a13ca2842aa0c13266ab04de, type: 3}
+  GoldSprite: {fileID: -1464331715, guid: 98887461a13ca2842aa0c13266ab04de, type: 3}
+  StairsDownSprite: {fileID: 1111057955, guid: 98887461a13ca2842aa0c13266ab04de, type: 3}
+  StairsUpSprite: {fileID: -272642229, guid: 98887461a13ca2842aa0c13266ab04de, type: 3}

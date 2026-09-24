@@ -107,7 +107,7 @@ namespace DungeonCrawler.Game
 
             _hintText = AddText(go, 16, TextAnchor.MiddleLeft);
             _hintText.color = Palette.HudDim;
-            _hintText.text = "Move: arrows / WASD  ·  Diagonals: Q E Z C  ·  Wait: space  ·  Use item: 1-9  ·  Descend: >  ·  Restart: R";
+            _hintText.text = "Move: arrows / WASD  ·  Diagonals: Q E Z C  ·  Wait: space  ·  Use item: 1-9  ·  Drop: shift+1-9  ·  Descend: >  ·  Restart: R";
         }
 
         void BuildOverlay(Transform parent)
