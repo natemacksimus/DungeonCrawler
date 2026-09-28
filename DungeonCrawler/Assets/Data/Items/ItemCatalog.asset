@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a244c3e8a5786174faac3e1e03806d29, type: 3}
+  m_Name: ItemCatalog
+  m_EditorClassIdentifier: DungeonCrawler.Game::DungeonCrawler.Game.ItemCatalogAsset
+  Items:
+  - {fileID: 11400000, guid: 29157466fa378f14c87d7b877209a7a6, type: 2}
+  - {fileID: 11400000, guid: 517d4e49d236262499935d5dfc079957, type: 2}
+  - {fileID: 11400000, guid: 828998ae1603a744e834f9a036369d39, type: 2}
+  - {fileID: 11400000, guid: 7d68c137fc3a19b4b8e3250764f92fbe, type: 2}
+  - {fileID: 11400000, guid: 7253f33044d29984da2a11d7d9ae19ec, type: 2}
+  - {fileID: 11400000, guid: 8a168baf8dfdd91489dab1fb70278184, type: 2}
+  - {fileID: 11400000, guid: 3fcaf1914fe7d464cbc983e422f33b6f, type: 2}
+  - {fileID: 11400000, guid: d7f3bd30c4ab7dc44903f95a90bd939d, type: 2}
+  - {fileID: 11400000, guid: dee44496162dc9d4f8f1db557164d0de, type: 2}
+  - {fileID: 11400000, guid: 6ad9f40b06d65ee4da352e5bd2e8b3ce, type: 2}
+  - {fileID: 11400000, guid: 319b6e51b3cf25e409db2de467f48037, type: 2}
+  - {fileID: 11400000, guid: e22a5acc879884c4f8a8e6f62253c658, type: 2}

@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27eaff641b9af344784353165aa30d3a, type: 3}
+  m_Name: Lich
+  m_EditorClassIdentifier: DungeonCrawler.Game::DungeonCrawler.Game.EnemyArchetypeAsset
+  EnemyName: Lich
+  Glyph: 76
+  BaseHp: 30
+  BaseAttack: 10
+  BaseDefense: 5
+  BaseXp: 50
+  SightRadius: 9
+  Ranged: 1
+  AttackRange: 3
+  FleesWhenHurt: 0
+  Sluggish: 0
+  MinDepth: 8
+  BaseWeight: 10
+  HpPerDepth: 3
+  AttackPerDepth: 3
+  DefensePerDepth: 2
+  Sprite: {fileID: -6358919791258385102, guid: 98887461a13ca2842aa0c13266ab04de, type: 3}

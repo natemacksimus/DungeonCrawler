@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace DungeonCrawler.Core
 {
     /// <summary>
@@ -119,14 +121,27 @@ namespace DungeonCrawler.Core
             GiantRat, Goblin, KoboldThief, SkeletonArcher, OrcBrute
         };
 
-        /// <summary>Depth-weighted pick: rats thin out as the nastier archetypes unlock.</summary>
+        /// <summary>Depth-weighted pick from the built-in five: rats thin out as nastier archetypes unlock.</summary>
         public static EnemyArchetype Roll(int depth, Rng rng)
         {
+            return Roll(depth, rng, All);
+        }
+
+        /// <summary>
+        /// Depth-weighted pick from an arbitrary roster, so a caller can swap in a custom catalog
+        /// without this class knowing where it came from. A null or empty roster falls back to
+        /// <see cref="All"/>, which keeps headless callers (tests, <see cref="SelfPlay"/>) working
+        /// with no setup.
+        /// </summary>
+        public static EnemyArchetype Roll(int depth, Rng rng, IReadOnlyList<EnemyArchetype> roster)
+        {
+            if (roster == null || roster.Count == 0) roster = All;
+
             int total = 0;
-            var weights = new int[All.Length];
-            for (int i = 0; i < All.Length; i++)
+            var weights = new int[roster.Count];
+            for (int i = 0; i < roster.Count; i++)
             {
-                EnemyArchetype a = All[i];
+                EnemyArchetype a = roster[i];
                 if (depth < a.MinDepth) continue;
 
                 int weight = a.BaseWeight;
@@ -137,16 +152,16 @@ namespace DungeonCrawler.Core
                 total += weight;
             }
 
-            if (total <= 0) return GiantRat;
+            if (total <= 0) return roster[0];
 
             int roll = rng.Range(0, total);
-            for (int i = 0; i < All.Length; i++)
+            for (int i = 0; i < roster.Count; i++)
             {
                 if (weights[i] == 0) continue;
                 roll -= weights[i];
-                if (roll < 0) return All[i];
+                if (roll < 0) return roster[i];
             }
-            return Goblin;
+            return roster[roster.Count - 1];
         }
     }
 }

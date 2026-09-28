@@ -179,13 +179,26 @@ namespace DungeonCrawler.Core
     {
         public static Item Roll(int depth, Rng rng)
         {
+            return Roll(depth, rng, ItemCatalog.All);
+        }
+
+        /// <summary>
+        /// Weighted roll from an arbitrary item roster, so a caller can swap in a custom catalog
+        /// without this class knowing where it came from. A null or empty roster falls back to
+        /// <see cref="ItemCatalog.All"/>, which keeps headless callers (tests, self-play) working with
+        /// no setup.
+        /// </summary>
+        public static Item Roll(int depth, Rng rng, IReadOnlyList<ItemDef> roster)
+        {
+            if (roster == null || roster.Count == 0) roster = ItemCatalog.All;
+
             var candidates = new List<ItemDef>();
             var weights = new List<int>();
             int total = 0;
 
-            for (int i = 0; i < ItemCatalog.All.Length; i++)
+            for (int i = 0; i < roster.Count; i++)
             {
-                ItemDef def = ItemCatalog.All[i];
+                ItemDef def = roster[i];
                 if (depth < def.MinDepth) continue;
 
                 int weight = def.BaseWeight;

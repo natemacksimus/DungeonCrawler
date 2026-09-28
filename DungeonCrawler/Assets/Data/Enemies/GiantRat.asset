@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27eaff641b9af344784353165aa30d3a, type: 3}
+  m_Name: GiantRat
+  m_EditorClassIdentifier: DungeonCrawler.Game::DungeonCrawler.Game.EnemyArchetypeAsset
+  EnemyName: giant rat
+  Glyph: 114
+  BaseHp: 6
+  BaseAttack: 3
+  BaseDefense: 0
+  BaseXp: 5
+  SightRadius: 5
+  Ranged: 0
+  AttackRange: 1
+  FleesWhenHurt: 0
+  Sluggish: 0
+  MinDepth: 1
+  BaseWeight: 30
+  HpPerDepth: 1
+  AttackPerDepth: 1
+  DefensePerDepth: 0.5
+  Sprite: {fileID: 2918841900452246208, guid: 98887461a13ca2842aa0c13266ab04de, type: 3}

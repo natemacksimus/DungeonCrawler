@@ -34,6 +34,14 @@ namespace DungeonCrawler.Game
         [Tooltip("Optional artwork replacing the built-in procedural shapes. Leave empty to keep defaults.")]
         [SerializeField] VisualOverrides visualOverrides;
 
+        [Header("Enemies")]
+        [Tooltip("Optional custom enemy roster. Leave empty to use the built-in five archetypes.")]
+        [SerializeField] EnemyCatalogAsset enemyCatalog;
+
+        [Header("Items")]
+        [Tooltip("Optional custom item catalog. Leave empty to use the built-in twelve items.")]
+        [SerializeField] ItemCatalogAsset itemCatalog;
+
         GameState _game;
         DungeonView _view;
         GameHud _hud;
@@ -48,7 +56,10 @@ namespace DungeonCrawler.Game
         void Awake()
         {
             int actualSeed = seed != 0 ? seed : Random.Range(1, int.MaxValue);
-            _game = new GameState(actualSeed, new GameConfig { MaxDepth = maxDepth });
+            var config = new GameConfig { MaxDepth = maxDepth };
+            if (enemyCatalog != null) config.EnemyRoster = enemyCatalog.BuildRoster();
+            if (itemCatalog != null) config.ItemRoster = itemCatalog.BuildRoster();
+            _game = new GameState(actualSeed, config);
 
             _view = gameObject.AddComponent<DungeonView>();
             _hud = gameObject.AddComponent<GameHud>();
@@ -63,7 +74,7 @@ namespace DungeonCrawler.Game
             _rig = camera.gameObject.GetComponent<CameraRig>();
             if (_rig == null) _rig = camera.gameObject.AddComponent<CameraRig>();
 
-            _view.Initialize(_game, visualOverrides);
+            _view.Initialize(_game, visualOverrides, enemyCatalog, itemCatalog);
             _hud.Initialize(_game);
             _rig.Initialize(camera, _game);
 
@@ -191,9 +202,8 @@ namespace DungeonCrawler.Game
                 return true;
             }
 
-            // '>' is shift+period on most layouts, so accept the bare period and enter too.
-            if (keyboard[Key.Period].wasPressedThisFrame || keyboard[Key.Enter].wasPressedThisFrame ||
-                keyboard[Key.NumpadEnter].wasPressedThisFrame)
+            // R only descends while playing; on the end-of-run screen it restarts instead.
+            if (keyboard[Key.R].wasPressedThisFrame)
             {
                 int depthBefore = _game.Depth;
                 if (_game.PlayerDescend())

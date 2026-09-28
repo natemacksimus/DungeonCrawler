@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 75a9c4aeff5dd0944a7190101651b787, type: 3}
+  m_Name: EnemyCatalog
+  m_EditorClassIdentifier: DungeonCrawler.Game::DungeonCrawler.Game.EnemyCatalogAsset
+  Enemies:
+  - {fileID: 11400000, guid: d541c56a11902004496ccbadeefb8ea5, type: 2}
+  - {fileID: 11400000, guid: f109ba24e8d369f4f8d582f83cf2efa1, type: 2}
+  - {fileID: 11400000, guid: 9f7b1f2478b97f34bb973be7ed5216c3, type: 2}
+  - {fileID: 11400000, guid: 0757d4d76c4ba6e4992d0bd2d8883142, type: 2}
+  - {fileID: 11400000, guid: f4867ddc5f8143143b71417209c22504, type: 2}
+  - {fileID: 11400000, guid: e9ae20ae1a8509749a184ea17222a6bc, type: 2}
+  - {fileID: 11400000, guid: 8986d31fc848df04fb3bc469f0781a8a, type: 2}
+  - {fileID: 11400000, guid: 1afc7c5a52042864ea91054eacb69c83, type: 2}

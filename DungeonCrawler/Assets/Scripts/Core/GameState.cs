@@ -31,6 +31,22 @@ namespace DungeonCrawler.Core
         /// back from a bad fight, and every run ends on floor 1 or 2 waiting for a potion to drop.
         /// </summary>
         public int TurnsPerHpRegen = 9;
+
+        /// <summary>
+        /// Enemy roster used by <see cref="EnemyCatalog.Roll"/>. Null or empty falls back to the
+        /// built-in five in <see cref="EnemyCatalog.All"/>, so headless callers (tests, self-play)
+        /// need no setup. Unity-side code can override this with a roster built from Editor-authored
+        /// <c>EnemyCatalogAsset</c> data.
+        /// </summary>
+        public IReadOnlyList<EnemyArchetype> EnemyRoster;
+
+        /// <summary>
+        /// Item roster used by <see cref="LootTable.Roll"/>. Null or empty falls back to the built-in
+        /// catalog in <see cref="ItemCatalog.All"/>. The guaranteed-potion safety net in
+        /// <see cref="GameState.PopulateFloor"/> always uses the built-in Healing Potion regardless of
+        /// this roster, so a run can never go dry of heals even with a fully custom catalog.
+        /// </summary>
+        public IReadOnlyList<ItemDef> ItemRoster;
     }
 
     /// <summary>End-of-run summary, shown on the death and victory screens.</summary>
@@ -160,7 +176,7 @@ namespace DungeonCrawler.Core
                     Vec2I? spot = FindFreeTileInRoom(room, taken, _config.SafeRadiusAroundSpawn);
                     if (spot == null) break;
                     taken.Add(spot.Value);
-                    Enemies.Add(new Enemy(EnemyCatalog.Roll(Depth, Rng), Depth, spot.Value));
+                    Enemies.Add(new Enemy(EnemyCatalog.Roll(Depth, Rng, _config.EnemyRoster), Depth, spot.Value));
                 }
 
                 if (Rng.Chance(_config.ItemChancePerRoom))
@@ -169,7 +185,7 @@ namespace DungeonCrawler.Core
                     if (spot != null)
                     {
                         taken.Add(spot.Value);
-                        Ground.Add(new GroundItem(LootTable.Roll(Depth, Rng), spot.Value));
+                        Ground.Add(new GroundItem(LootTable.Roll(Depth, Rng, _config.ItemRoster), spot.Value));
                     }
                 }
             }
@@ -391,7 +407,7 @@ namespace DungeonCrawler.Core
             // Every kill has a chance to leave something behind, richer the deeper you are.
             if (Rng.Chance(0.25 + Depth * 0.02))
             {
-                Ground.Add(new GroundItem(LootTable.Roll(Depth, Rng), enemy.Position));
+                Ground.Add(new GroundItem(LootTable.Roll(Depth, Rng, _config.ItemRoster), enemy.Position));
             }
         }
 
@@ -420,8 +436,8 @@ namespace DungeonCrawler.Core
             else if (IsPlayerOnStairsDown && Status == GameStatus.Playing)
             {
                 Log.Add(Depth >= MaxDepth
-                    ? "Stairs out of the dungeon. Press > to escape."
-                    : "You find stairs down. Press > to descend.");
+                    ? "Stairs out of the dungeon. Press R to escape."
+                    : "You find stairs down. Press R to descend.");
             }
         }
 

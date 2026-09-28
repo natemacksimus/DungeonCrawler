@@ -376,6 +376,8 @@ MonoBehaviour:
   repeatDelay: 0.3
   repeatInterval: 0.07
   visualOverrides: {fileID: 11400000, guid: 90d2c9a078d1e764a8eb7b1413116229, type: 2}
+  enemyCatalog: {fileID: 11400000, guid: 38d893adb3428ff4e95deccf5c0d032b, type: 2}
+  itemCatalog: {fileID: 11400000, guid: cac0484333dac7a44a5c3d96be7d1d7e, type: 2}
 --- !u!4 &1255904610
 Transform:
   m_ObjectHideFlags: 0
